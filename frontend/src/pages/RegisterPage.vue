@@ -20,14 +20,12 @@ async function register() {
   errorMsg.value = "";
 
   try {
-    // backend ของคุณคืน token ได้ แต่เราจะพาไปหน้า Login ตามฟลโว์ที่ตั้งไว้
     await api.post("/auth/register", {
       email: email.value,
       password: password.value,
     });
     router.push("/login");
   } catch (e: any) {
-    // รองรับกรณีอีเมลซ้ำ (P2002 -> 409) หรือ error อื่น ๆ
     errorMsg.value =
       e?.response?.data?.message ||
       (e?.response?.status === 409

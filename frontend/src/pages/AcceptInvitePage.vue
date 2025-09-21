@@ -14,7 +14,7 @@ onMounted(async () => {
     router.replace(`/boards/${data.boardId}`);
   } catch (e:any) {
     const msg = e?.response?.data?.message ?? e.message ?? "Accept failed";
-    alert(msg);                 // จะเห็นข้อความ "Invalid invite" ชัด ๆ
+    alert(msg);
     router.replace("/boards");
   }
 });

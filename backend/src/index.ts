@@ -22,7 +22,6 @@ app.get("/health", (_: Request, res: Response) => res.json({ ok: true }));
 /* ------------------------------- Helpers -------------------------------- */
 const normalizeEmail = (e?: string | null) => (e ?? "").trim().toLowerCase();
 
-/** สร้างแจ้งเตือนให้ผู้ใช้หนึ่งคน (ไม่ทำให้รีเควสหลักพังถ้า error) */
 async function notify(userId: string, title: string, body?: string, data?: any) {
   try {
     await prisma.notification.create({
@@ -95,7 +94,6 @@ async function getBoardIdByTask(taskId: string) {
 }
 
 /* -------------------------------- Boards -------------------------------- */
-// GET boards (เจ้าของ + สมาชิก ไม่ซ้ำ)
 app.get("/boards", auth, async (req: any, res) => {
   const userId = req.userId as string;
   const [owned, member] = await Promise.all([
@@ -108,7 +106,6 @@ app.get("/boards", auth, async (req: any, res) => {
   res.json([...owned, ...member.map((m) => m.board)]);
 });
 
-// POST สร้างบอร์ด + ลงทะเบียน OWNER
 app.post("/boards", auth, async (req: any, res) => {
   const userId = req.userId as string;
   const { title } = req.body as { title: string };
@@ -127,7 +124,6 @@ app.patch("/boards/:id", auth, async (req: any, res) => {
   res.json(updated);
 });
 
-// GET บอร์ดเดียว (columns+tasks+tags+memberships)
 app.get("/boards/:id", auth, async (req: any, res) => {
   const { id } = req.params;
   if (!(await isBoardMember(id, req.userId))) return res.status(403).json({ message: "Forbidden" });
@@ -141,7 +137,6 @@ app.get("/boards/:id", auth, async (req: any, res) => {
             orderBy: { position: "asc" },
             include: {
               taskTags: { include: { tag: true } },
-              // 👇 include ผู้รับผิดชอบ
               assignees: { include: { user: { select: { id: true, email: true } } } },
             },
           },
@@ -155,7 +150,6 @@ app.get("/boards/:id", auth, async (req: any, res) => {
   res.json(board);
 });
 
-// DELETE ลบบอร์ด (OWNER เท่านั้น)
 app.delete("/boards/:id", auth, async (req: any, res) => {
   const { id } = req.params as { id: string };
   if (!(await isBoardOwner(id, req.userId))) return res.status(403).json({ message: "Only board owner can delete" });
@@ -244,7 +238,6 @@ app.delete("/tasks/:id", auth, async (req: any, res) => {
   res.json({ ok: true });
 });
 
-// drag & drop (ย้ายคอลัมน์ + จัดลำดับ)
 app.patch("/tasks/reorder", auth, async (req: any, res) => {
   const { columnId, items } = req.body as { columnId: string; items: { id: string; position: number }[] };
   const boardId = await getBoardIdByColumn(columnId);
@@ -260,8 +253,6 @@ app.post("/tasks/:taskId/assignees/:userId", auth, async (req: any, res) => {
   const { taskId, userId } = req.params;
   const boardId = await getBoardIdByTask(taskId);
   if (!boardId || !(await isBoardMember(boardId, req.userId))) return res.status(403).json({ message: "Forbidden" });
-
-  // ผู้ถูกมอบหมายต้องเป็นสมาชิกบอร์ด
   const target = await prisma.membership.findUnique({ where: { boardId_userId: { boardId, userId } } });
   if (!target) return res.status(400).json({ message: "User is not a member of this board" });
 
@@ -317,7 +308,7 @@ app.post("/boards/:boardId/invites", auth, async (req: any, res) => {
     },
   });
 
-  // ถ้ามีบัญชีอีเมลนี้อยู่แล้ว => ส่งแจ้งเตือนทันที
+
   if (inviteEmail) {
     const user = await prisma.user.findUnique({ where: { email: inviteEmail } });
     if (user) {

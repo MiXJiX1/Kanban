@@ -3,17 +3,12 @@ import axios from "axios";
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:4000",
 });
-
-// แนบ token ในทุกคำขอ (อ่านจาก localStorage ทุกครั้ง)
 api.interceptors.request.use((cfg) => {
   const t = localStorage.getItem("token");
   if (t) (cfg.headers ??= {}).Authorization = `Bearer ${t}`;
-  // ดีบัก: ดู URL/หัวข้อ Authorization
   console.log("[API]", (cfg.baseURL || "") + (cfg.url || ""), cfg.headers?.Authorization);
   return cfg;
 });
-
-// ถ้า 401 ให้เด้งไป login และล้าง token
 api.interceptors.response.use(
   (r) => r,
   (err) => {

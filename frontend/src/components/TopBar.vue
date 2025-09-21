@@ -12,7 +12,7 @@ type Noti = {
   id: string;
   title: string;
   body?: string;
-  data?: any;         // { boardId?: string; token?: string; ... }
+  data?: any;   
   read: boolean;
   createdAt: string;
 };
@@ -26,7 +26,7 @@ let timer: any = null;
 
 /* ---- fetch / poll ---- */
 async function fetchNoti() {
-  const { data } = await getNotifications(true); // unread only
+  const { data } = await getNotifications(true);
   items.value = data;
   unreadCount.value = data.length;
 }
@@ -56,8 +56,8 @@ async function acceptInvite(n: Noti) {
     const token = n.data?.token as string | undefined;
     if (!token) return;
     const { data } = await api.post("/invites/accept", { token });
-    await markOne(n.id);         // mark this noti as read
-    open.value = false;          // close dropdown
+    await markOne(n.id);   
+    open.value = false;
     router.push(`/boards/${data.boardId}`);
   } catch (e: any) {
     alert(e?.response?.data?.message || "Accept invite failed");
@@ -144,7 +144,6 @@ onBeforeUnmount(stopPolling);
           </div>
         </div>
 
-        <!-- ที่เหลือของปุ่มอื่น ๆ (ธีม ฯลฯ) คงไว้ตามเดิม -->
       </div>
     </div>
   </header>
