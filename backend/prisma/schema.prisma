@@ -1,0 +1,120 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id       String       @id @default(cuid())
+  email    String       @unique
+  password String
+  boards   Board[]      @relation("OwnerBoards")
+  members  Membership[]
+  notifications Notification[]
+  assignments TaskAssignee[]
+}
+
+model Board {
+  id          String       @id @default(cuid())
+  title       String
+  ownerId     String
+  owner       User         @relation("OwnerBoards", fields: [ownerId], references: [id])
+  columns     Column[]
+  memberships Membership[]
+  tags        Tag[]
+  Invitation  Invitation[]
+}
+
+model Column {
+  id       String @id @default(cuid())
+  title    String
+  position Int
+  boardId  String
+  board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  tasks    Task[]
+}
+
+model Task {
+  id       String    @id @default(cuid())
+  title    String
+  position Int
+  columnId String
+  column  Column @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  taskTags TaskTag[]
+  assignees TaskAssignee[]
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+model Membership {
+  id   String @id @default(cuid())
+  role Role   @default(MEMBER)
+
+  boardId String
+  userId  String
+  board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([boardId, userId])
+}
+
+model Invitation {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  email     String?
+  boardId   String
+  board     Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  accepted  Boolean  @default(false)
+}
+
+model Tag {
+  id      String @id @default(cuid())
+  name    String
+  color   String @default("#3b82f6")
+  boardId String
+  board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+
+  taskTags TaskTag[]
+
+  @@unique([boardId, name])
+}
+
+model TaskTag {
+  taskId String
+  tagId  String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, tagId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  body      String?
+  data      Json?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, read, createdAt])
+}
+
+model TaskAssignee {
+  taskId String
+  userId String
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, userId])
+}

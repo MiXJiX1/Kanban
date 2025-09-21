@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .btn { @apply inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium shadow-sm transition border border-transparent hover:-translate-y-[1px] active:translate-y-0; }
+  .btn-primary { @apply bg-indigo-600 text-white hover:bg-indigo-500; }
+  .btn-outline { @apply bg-white text-slate-700 border-slate-300 hover:bg-slate-50; }
+  .btn-danger { @apply bg-rose-600 text-white hover:bg-rose-500; }
+  .btn-ghost { @apply text-slate-600 hover:bg-slate-100; }
+
+  .input { @apply rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500; }
+  .card { @apply rounded-2xl border border-slate-200/60 bg-white text-slate-900
+           p-5 shadow-md hover:shadow-lg transition
+           dark:border-slate-700/50; }
+  .col-card { @apply card p-3 w-[360px]; }
+  .task-card { @apply card p-3 my-2; }
+  .pill { @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium text-white; }
+}
